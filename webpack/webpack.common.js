@@ -16,6 +16,7 @@ module.exports = {
 		publicPath: '/',
 	},
 	//Нужно помочь вебпаку научится работать с jsx и tsx файлами для этого используют ts loader
+		//Нужно помочь вебпаку научится работать с jsx и tsx файлами для этого используют ts loader
 	module: {
 		rules: [
 			{
@@ -68,6 +69,11 @@ module.exports = {
 						loader: 'sass-loader',
 						options: {
 							sourceMap: true,
+							api: 'modern',
+							sassOptions: {
+								silenceDeprecations: ['legacy-js-api', 'import'], 
+								loadPaths: [path.resolve(__dirname, '..', './src')],
+							},
 						},
 					},
 				],

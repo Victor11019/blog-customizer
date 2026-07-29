@@ -1,90 +1,58 @@
 import type { StorybookConfig } from '@storybook/react-webpack5';
-const path = require('path');
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Эмуляция __dirname для ESM сред
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const config: StorybookConfig = {
-	stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
-	addons: [
-        '@storybook/addon-links',
-        '@storybook/addon-essentials',
-        '@storybook/addon-onboarding',
-        '@storybook/addon-interactions',
-        '@storybook/addon-styling-webpack',
+  "stories": [
+    "../src/*/*.mdx",
+    "../src/*/*.stories.@(js|jsx|mjs|ts|tsx)"
+  ],
+  "addons": [
+    "@storybook/addon-webpack5-compiler-swc",
+    "@storybook/addon-a11y",
+    "@storybook/addon-docs",
+    "@storybook/addon-onboarding"
+  ],
+  "framework": "@storybook/react-webpack5",
+  webpackFinal: async (config) => {
+    if (config.resolve) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'fonts': path.resolve(__dirname, '../src/fonts'),
+      };
+    }
+
+    config.module?.rules?.push({
+      test: /\.scss$/,
+      use: [
+        'style-loader',
         {
-			name: '@storybook/addon-styling-webpack',
-
-			options: {
-				rules: [
-					{
-						test: /\.css$/,
-						sideEffects: true,
-						use: [
-							require.resolve('style-loader'),
-							{
-								loader: require.resolve('css-loader'),
-								options: {
-									// Want to add more CSS Modules options? Read more here: https://github.com/webpack-contrib/css-loader#modules
-									modules: {
-										auto: true,
-									},
-								},
-							},
-						],
-					},
-					{
-						test: /\.s[ac]ss$/,
-						sideEffects: true,
-						use: [
-							require.resolve('style-loader'),
-							{
-								loader: require.resolve('css-loader'),
-								options: {
-									// Want to add more CSS Modules options? Read more here: https://github.com/webpack-contrib/css-loader#modules
-									modules: {
-										auto: true,
-									},
-									importLoaders: 2,
-								},
-							},
-							require.resolve('resolve-url-loader'),
-							{
-								loader: require.resolve('sass-loader'),
-								options: {
-									// Want to add more Sass options? Read more here: https://webpack.js.org/loaders/sass-loader/#options
-									implementation: require.resolve('sass'),
-									sourceMap: true,
-									sassOptions: {},
-								},
-							},
-						],
-					},
-				],
-			},
-		},
-        '@storybook/addon-webpack5-compiler-swc'
-    ],
-	webpackFinal: async (config) => {
-		if (config?.resolve?.alias) {
-			config.resolve.alias = {
-				fonts: path.resolve(__dirname, '..', './src/fonts'),
-				src: path.resolve(__dirname, '..', './src'),
-				components: path.resolve(__dirname, '..', './src/components'),
-			};
-		}
-
-		return config;
-	},
-	framework: '@storybook/react-webpack5',
-	swc: () => ({
-		jsc: {
-			transform: {
-				react: {
-					runtime: 'automatic',
-				},
-			},
-		},
-	}),
-	docs: {
-		autodocs: 'tag',
-	},
+          loader: 'css-loader',
+          options: {
+            modules: {
+              auto: true,
+            },
+          },
+        },
+        {
+          loader: 'sass-loader',
+          options: {
+            sassOptions: {
+              includePaths: [path.resolve(__dirname, '../src')],
+              silenceDeprecations: ['legacy-js-api', 'import'],
+            },
+          },
+        },
+      ],
+    });
+    return config;
+  },
 };
+
 export default config;
+
+
