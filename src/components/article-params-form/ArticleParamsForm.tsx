@@ -18,7 +18,7 @@ import {
 } from 'src/constants/articleProps';
 import { RadioGroup } from 'src/ui/radio-group';
 import { Separator } from 'src/ui/separator';
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
 
 export type ArticleParamsFormProps = {
 	setAppState: (value: ArticleStateType) => void;
@@ -27,10 +27,13 @@ export type ArticleParamsFormProps = {
 export const ArticleParamsForm = (props: ArticleParamsFormProps) => {
 	const { setAppState } = props;
 
-	const [isOpened, setIsOpened] = useState<boolean>(false);
+	const [isSidebarOpen, setIsOpened] = useState<boolean>(false);
 
 	const [formState, setFormState] =
 		useState<ArticleStateType>(defaultArticleState);
+
+	const sidebarRef = useRef<HTMLDivElement>(null);
+	const arrowButtonRef = useRef<HTMLDivElement>(null);
 
 	const handleChange = (fieldName: string) => {
 		return (value: OptionType) => {
@@ -43,29 +46,60 @@ export const ArticleParamsForm = (props: ArticleParamsFormProps) => {
 
 	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-
 		setAppState(formState);
 	};
 
 	const handleReset = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-
 		setFormState(defaultArticleState);
-
 		setAppState(defaultArticleState);
 	};
 
+	useEffect(() => {
+		if (!isSidebarOpen) return;
+
+		const handleOutsideClick = (event: MouseEvent) => {
+			const target = event.target as Node;
+
+			const isOutsideSidebar =
+				sidebarRef.current && !sidebarRef.current.contains(target);
+			const isOutsideArrowButton =
+				arrowButtonRef.current && !arrowButtonRef.current.contains(target);
+
+			if (isOutsideSidebar && isOutsideArrowButton) {
+				setIsOpened(false);
+			}
+		};
+
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				setIsOpened(false);
+			}
+		};
+
+		document.addEventListener('mousedown', handleOutsideClick);
+		window.addEventListener('keydown', handleKeyDown);
+
+		return () => {
+			document.removeEventListener('mousedown', handleOutsideClick);
+			window.removeEventListener('keydown', handleKeyDown);
+		};
+	}, [isSidebarOpen]);
+
 	return (
 		<>
-			<ArrowButton
-				isOpen={isOpened}
-				onClick={() => setIsOpened((currentIsOpened) => !currentIsOpened)}
-			/>
-			<div
-				onClick={() => setIsOpened(false)}
-				className={clsx(styles.overlay, isOpened && styles.overlay_open)}></div>
+			<div ref={arrowButtonRef}>
+				<ArrowButton
+					isOpen={isSidebarOpen}
+					onClick={() => setIsOpened((currentIsOpened) => !currentIsOpened)}
+				/>
+			</div>
 			<aside
-				className={clsx(styles.container, isOpened && styles.container_open)}>
+				ref={sidebarRef}
+				className={clsx(
+					styles.container,
+					isSidebarOpen && styles.container_open
+				)}>
 				<form
 					onSubmit={handleSubmit}
 					onReset={handleReset}
@@ -106,8 +140,8 @@ export const ArticleParamsForm = (props: ArticleParamsFormProps) => {
 						onChange={handleChange('contentWidth')}
 					/>
 					<div className={styles.bottomContainer}>
-						<Button title='Сбросить' htmlType='reset' />
-						<Button title='Применить' htmlType='submit' />
+						<Button title='Сбросить' htmlType='reset' type='clear' />
+						<Button title='Применить' htmlType='submit' type='apply' />
 					</div>
 				</form>
 			</aside>

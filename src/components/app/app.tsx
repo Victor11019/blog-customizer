@@ -11,23 +11,23 @@ import { ArticleParamsForm } from '../article-params-form';
 import styles from './app.module.scss';
 
 export const App = () => {
-	const [appState, setAppState] =
+	const [appliedArticleState, setAppState] =
 		useState<ArticleStateType>(defaultArticleState);
 
 	return (
-		<div
+		<main
 			className={clsx(styles.main)}
 			style={
 				{
-					'--font-family': appState.fontFamilyOption.value,
-					'--font-size': appState.fontSizeOption.value,
-					'--font-color': appState.fontColor.value,
-					'--container-width': appState.contentWidth.value,
-					'--bg-color': appState.backgroundColor.value,
+					'--font-family': appliedArticleState.fontFamilyOption.value,
+					'--font-size': appliedArticleState.fontSizeOption.value,
+					'--font-color': appliedArticleState.fontColor.value,
+					'--container-width': appliedArticleState.contentWidth.value,
+					'--bg-color': appliedArticleState.backgroundColor.value,
 				} as CSSProperties
 			}>
 			<ArticleParamsForm setAppState={setAppState} />
 			<Article />
-		</div>
+		</main>
 	);
 };
